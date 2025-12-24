@@ -1,0 +1,153 @@
+/* ============================================
+   VECTUX ACADEMY - ANIMATION LIBRARY
+   ============================================ */
+
+/* Keyframes for different directions */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes flipUp {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+    transform-origin: bottom;
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0);
+  }
+}
+
+@keyframes flipDown {
+  from {
+    opacity: 0;
+    transform: rotateX(90deg);
+    transform-origin: top;
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0);
+  }
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Animation duration classes */
+.anim-very-fast { animation-duration: 200ms !important; }
+.anim-fast { animation-duration: 400ms !important; }
+.anim-normal { animation-duration: 600ms !important; }
+.anim-light-slow { animation-duration: 800ms !important; }
+.anim-slow { animation-duration: 1000ms !important; }
+.anim-very-slow { animation-duration: 1200ms !important; }
+
+/* Animation direction classes */
+.anim-fade-up { animation-name: fadeUp; animation-fill-mode: both; }
+.anim-fade-down { animation-name: fadeDown; animation-fill-mode: both; }
+.anim-fade-left { animation-name: fadeLeft; animation-fill-mode: both; }
+.anim-fade-right { animation-name: fadeRight; animation-fill-mode: both; }
+.anim-zoom-in { animation-name: zoomIn; animation-fill-mode: both; }
+.anim-zoom-out { animation-name: zoomOut; animation-fill-mode: both; }
+.anim-flip-up { animation-name: flipUp; animation-fill-mode: both; }
+.anim-flip-down { animation-name: flipDown; animation-fill-mode: both; }
+.anim-floating { animation-name: floating; animation-duration: 3s; animation-iteration-count: infinite; }
+.anim-pulse { animation-name: pulse; animation-duration: 2s; animation-iteration-count: infinite; }
+
+/* Delay classes */
+.anim-delay-100 { animation-delay: 100ms; }
+.anim-delay-200 { animation-delay: 200ms; }
+.anim-delay-300 { animation-delay: 300ms; }
+.anim-delay-400 { animation-delay: 400ms; }
+.anim-delay-500 { animation-delay: 500ms; }
+.anim-delay-600 { animation-delay: 600ms; }
+.anim-delay-700 { animation-delay: 700ms; }
+.anim-delay-800 { animation-delay: 800ms; }
+.anim-delay-900 { animation-delay: 900ms; }
+.anim-delay-1000 { animation-delay: 1000ms; }
