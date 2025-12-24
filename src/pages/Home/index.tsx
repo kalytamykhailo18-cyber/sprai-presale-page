@@ -6,6 +6,8 @@ import CampaignSection from './sections/CampaignSection';
 import FAQSection from './sections/FAQSection';
 import LinksSection from './sections/LinksSection';
 
+const baseUrl = import.meta.env.BASE_URL;
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const logoRef = useRef<HTMLDivElement>(null);
@@ -50,7 +52,7 @@ const Home: React.FC = () => {
             }}
           >
             <img
-              src="/logo.png"
+              src={`${baseUrl}logo.png`}
               alt="SPRAI Logo"
               className="block"
               style={{
@@ -83,7 +85,7 @@ const Home: React.FC = () => {
 
           {/* Banner Image - Full Width */}
           <img
-            src="/banner-dois.jpeg"
+            src={`${baseUrl}banner-dois.jpeg`}
             alt="SPRAI Banner"
             className="w-screen mb-10 block anim-zoom-out anim-slow anim-delay-600 transition-all duration-300 hover:scale-105"
             style={{
@@ -108,7 +110,7 @@ const Home: React.FC = () => {
               💰 Comprar {config.tokenSymbol}
             </button>
             <a
-              href="/Whitepaper_SPRAI_PT.pdf"
+              href={`${baseUrl}Whitepaper_SPRAI_PT.pdf`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 font-bold text-lg transition-all border-2 border-black/40 hover:bg-white/30 text-black"
@@ -117,7 +119,7 @@ const Home: React.FC = () => {
               Ver Whitepaper (PT)
             </a>
             <a
-              href="/Whitepaper_SPRAI_EN.pdf"
+              href={`${baseUrl}Whitepaper_SPRAI_EN.pdf`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 font-bold text-lg transition-all border-2 border-black/40 hover:bg-white/30 text-black"
@@ -138,7 +140,7 @@ const Home: React.FC = () => {
       {/* Bottom Banner - Full Width */}
       <div className="py-16 text-center overflow-hidden">
         <img
-          src="/sprai-banner.png"
+          src={`${baseUrl}sprai-banner.png`}
           alt="SPRAI Banner"
           className="w-screen anim-zoom-in anim-slow transition-transform duration-300 hover:scale-105"
           style={{

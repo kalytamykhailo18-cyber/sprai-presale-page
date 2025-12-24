@@ -7,5 +7,5 @@ export default defineConfig({
     port: 5173,
     host: true
   },
-  base: "sprai-presale-page"
+  base: '/sprai-presale-page/'
 })
