@@ -95,14 +95,15 @@ const Header: React.FC = () => {
                   </span>
                 </button>
               ) : (
-                <button
-                  onClick={handleConnectWallet}
-                  disabled={isLoading}
-                  className="bg-black/80 text-white px-4 sm:px-6 py-2 sm:py-3 font-semibold hover:bg-black transition-all disabled:bg-gray-400 shadow-md text-sm sm:text-base"
-                  style={{ borderRadius: '6px' }}
-                >
-                  Connect Wallet
-                </button>
+                <a
+  href="https://criptonopix.app.br/buy-and-sell?tokenSelected=SPRAI"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="bg-black/80 text-white px-4 sm:px-6 py-2 sm:py-3 font-semibold hover:bg-black transition-all shadow-md text-sm sm:text-base inline-block"
+  style={{ borderRadius: '6px' }}
+>
+  Comprar SPRAI
+</a>
               )}
             </div>
           </div>
