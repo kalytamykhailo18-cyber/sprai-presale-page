@@ -61,6 +61,9 @@ export const config = {
   websiteUrl: import.meta.env.VITE_WEBSITE_URL || '',
   instagramUrl: import.meta.env.VITE_INSTAGRAM_URL || '',
   facebookUrl: import.meta.env.VITE_FACEBOOK_URL || '',
+
+  // WalletConnect
+  walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '',
 };
 
 // ============================================

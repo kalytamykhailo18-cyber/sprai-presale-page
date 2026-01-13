@@ -1,29 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAccount, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
 import { useAppDispatch, useAppSelector } from '../store';
-import { connectWallet, disconnectWallet } from '../store/slices/walletSlice';
+import { syncWalletState, disconnectWallet, refreshBalances } from '../store/slices/walletSlice';
 import { config } from '../config';
 import WalletModal from './WalletModal';
-import web3Service from '../services/web3Service';
 
 const Header: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { address, connected } = useAppSelector((state) => state.wallet);
   const { isLoading, loadingMessage } = useAppSelector((state) => state.ui);
   const [showWalletModal, setShowWalletModal] = useState(false);
+
+  // Wagmi hooks
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  // Sync Wagmi state with Redux and fetch balances
+  useEffect(() => {
+    if (isConnected && address) {
+      dispatch(syncWalletState({ address, chainId }));
+      // Fetch USDT balance after wallet connection
+      dispatch(refreshBalances(address));
+    } else {
+      dispatch(disconnectWallet());
+    }
+  }, [isConnected, address, chainId, dispatch]);
+
+  // Auto-switch to correct chain
+  useEffect(() => {
+    if (isConnected && chainId !== config.chainId && switchChain) {
+      console.log(`Wrong network detected (${chainId}). Switching to ${config.chainId}...`);
+      switchChain({ chainId: config.chainId });
+    }
+  }, [isConnected, chainId, switchChain]);
 
   const handleConnectWallet = () => {
     setShowWalletModal(true);
   };
 
-  const handleWalletSelect = async (provider: any) => {
+  const handleWalletSelect = async () => {
+    // Wagmi handles the connection internally
     setShowWalletModal(false);
-    web3Service.setSelectedProvider(provider);
-    await dispatch(connectWallet());
   };
 
   const handleDisconnectWallet = () => {
+    disconnect();
     dispatch(disconnectWallet());
   };
 
@@ -53,6 +77,14 @@ const Header: React.FC = () => {
               >
                 {config.isMainnet ? 'MAINNET' : 'TESTNET'}
               </span>
+              {isConnected && chainId !== config.chainId && (
+                <span
+                  className="px-2 py-1 text-xs font-semibold bg-red-500/80 text-white"
+                  style={{ borderRadius: '6px' }}
+                >
+                  Wrong Network
+                </span>
+              )}
             </div>
 
             {/* Navigation - Hidden on mobile */}
@@ -81,7 +113,7 @@ const Header: React.FC = () => {
 
             {/* Wallet Button */}
             <div>
-              {connected && address ? (
+              {isConnected && address ? (
                 <button
                   onClick={handleDisconnectWallet}
                   className="bg-black/80 text-white px-4 sm:px-6 py-2 sm:py-3 font-semibold hover:bg-black transition-all shadow-md text-sm sm:text-base"

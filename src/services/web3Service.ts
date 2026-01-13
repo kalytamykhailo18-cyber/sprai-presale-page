@@ -1,8 +1,8 @@
-import { ethers, BrowserProvider } from 'ethers';
+import { ethers, BrowserProvider, JsonRpcProvider } from 'ethers';
 import { config } from '../config';
 
 // ============================================
-// WEB3 SERVICE
+// WEB3 SERVICE (Wagmi-compatible)
 // ALL CONFIGURATION FROM ENVIRONMENT VARIABLES
 // ZERO HARDCODED VALUES
 // ============================================
@@ -21,90 +21,57 @@ const PRESALE_ABI = [
 ];
 
 class Web3Service {
-  private provider: BrowserProvider | null = null;
-  private signer: ethers.Signer | null = null;
-  private selectedProvider: any = null;
-
-  setSelectedProvider(provider: any) {
-    this.selectedProvider = provider;
+  /**
+   * Get read-only provider (no wallet needed)
+   * Used for reading balances and contract state
+   */
+  private getReadProvider(): JsonRpcProvider {
+    return new JsonRpcProvider(config.bscRpcUrl);
   }
 
-  getSelectedProvider(): any {
-    return this.selectedProvider;
-  }
-
-  async connectWallet(): Promise<{ address: string; chainId: number }> {
-    const ethereum = this.selectedProvider;
-
-    if (!ethereum) {
-      throw new Error('Please select a wallet first');
+  /**
+   * Get ethers provider from browser wallet (window.ethereum)
+   * This works with MetaMask, Trust Wallet, and other injected wallets
+   */
+  private async getProvider(): Promise<BrowserProvider> {
+    // Check if window.ethereum exists (injected by wallet extension or in-app browser)
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      return new BrowserProvider((window as any).ethereum);
     }
 
-    // Request account access
-    const accounts = await ethereum.request({
-      method: 'eth_requestAccounts',
-    });
-
-    this.provider = new BrowserProvider(ethereum);
-    this.signer = await this.provider.getSigner();
-
-    const address = accounts[0];
-    const network = await this.provider.getNetwork();
-    const chainId = Number(network.chainId);
-
-    // ⚠️ USE CONFIG FOR CHAIN ID
-    if (chainId !== config.chainId) {
-      await this.switchToBSC();
-    }
-
-    return { address, chainId };
+    throw new Error('No Ethereum provider found. Please install MetaMask or use WalletConnect.');
   }
 
-  async switchToBSC() {
-    const ethereum = this.selectedProvider;
-    if (!ethereum) return;
-
-    // ⚠️ USE CONFIG FOR CHAIN ID
-    const chainIdHex = '0x' + config.chainId.toString(16);
-
-    try {
-      await ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: chainIdHex }],
-      });
-    } catch (error: any) {
-      // Chain not added, add it
-      if (error.code === 4902) {
-        await ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: chainIdHex,
-            chainName: config.chainName,
-            nativeCurrency: {
-              name: 'BNB',
-              symbol: 'BNB',
-              decimals: 18,
-            },
-            rpcUrls: [config.bscRpcUrl],
-            blockExplorerUrls: [config.blockExplorerUrl],
-          }],
-        });
-      }
-    }
+  /**
+   * Get signer from current wallet connection
+   */
+  private async getSigner(): Promise<ethers.Signer> {
+    const provider = await this.getProvider();
+    const signer = await provider.getSigner();
+    return signer;
   }
 
+  /**
+   * Get USDT balance for an address
+   * Uses read-only provider (no wallet connection required)
+   */
   async getUsdtBalance(address: string): Promise<string> {
-    if (!this.provider) throw new Error('Wallet not connected');
+    // Use read-only provider for balance checks
+    const provider = this.getReadProvider();
 
-    // ⚠️ USE CONFIG FOR CONTRACT ADDRESS
     const usdtContract = new ethers.Contract(
       config.usdtContract,
       USDT_ABI,
-      this.provider
+      provider
     );
 
-    const balance = await usdtContract.balanceOf(address);
-    return ethers.formatUnits(balance, 18);
+    try {
+      const balance = await usdtContract.balanceOf(address);
+      return ethers.formatUnits(balance, 18);
+    } catch (error) {
+      console.error('Error fetching USDT balance:', error);
+      return '0';
+    }
   }
 
   /**
@@ -117,27 +84,28 @@ class Web3Service {
    * 3. Contract automatically transfers USDT to owner and SPRAI to buyer
    */
   async buyTokens(usdtAmount: string): Promise<ethers.TransactionResponse> {
-    if (!this.signer) throw new Error('Wallet not connected');
+    const signer = await this.getSigner();
     if (!config.presaleContract) throw new Error('Presale contract not configured');
 
     const amountInWei = ethers.parseUnits(usdtAmount, 18);
 
-    // Get contracts
+    // Get contracts with signer for write operations
     const usdtContract = new ethers.Contract(
       config.usdtContract,
       USDT_ABI,
-      this.signer
+      signer
     );
 
     const presaleContract = new ethers.Contract(
       config.presaleContract,
       PRESALE_ABI,
-      this.signer
+      signer
     );
 
     // Check current allowance
+    const signerAddress = await signer.getAddress();
     const currentAllowance = await usdtContract.allowance(
-      await this.signer.getAddress(),
+      signerAddress,
       config.presaleContract
     );
 
@@ -157,15 +125,16 @@ class Web3Service {
 
   /**
    * Get presale configuration from smart contract
+   * Uses read-only provider
    */
   async getPresaleConfig() {
-    if (!this.provider) throw new Error('Wallet not connected');
+    const provider = this.getReadProvider();
     if (!config.presaleContract) throw new Error('Presale contract not configured');
 
     const presaleContract = new ethers.Contract(
       config.presaleContract,
       PRESALE_ABI,
-      this.provider
+      provider
     );
 
     const [price, minPurchase, maxPurchase, active] = await presaleContract.getConfig();
@@ -178,8 +147,10 @@ class Web3Service {
     };
   }
 
+  /**
+   * Calculate SPRAI amount from USDT amount
+   */
   calculateSpraiAmount(usdtAmount: number): string {
-    // ⚠️ USE CONFIG FOR TOKEN PRICE
     return (usdtAmount / config.tokenPriceUsdt).toFixed(2);
   }
 }

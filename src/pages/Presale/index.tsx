@@ -1,34 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { connectWallet } from '../../store/slices/walletSlice';
 import { fetchUserTransactions } from '../../store/slices/transactionSlice';
 import WalletInfo from './sections/WalletInfo';
 import PurchaseForm from './sections/PurchaseForm';
 import PresaleStats from './sections/PresaleStats';
-import WalletModal from '../../components/WalletModal';
-import web3Service from '../../services/web3Service';
 
 const Presale: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { address, connected } = useAppSelector((state) => state.wallet);
+  const { address, isConnected } = useAccount();
   const { transactions } = useAppSelector((state) => state.transaction);
-  const [showWalletModal, setShowWalletModal] = useState(false);
 
   useEffect(() => {
     if (address) {
       dispatch(fetchUserTransactions(address));
     }
   }, [address, dispatch]);
-
-  const handleConnectWallet = () => {
-    setShowWalletModal(true);
-  };
-
-  const handleWalletSelect = async (provider: any) => {
-    setShowWalletModal(false);
-    web3Service.setSelectedProvider(provider);
-    await dispatch(connectWallet());
-  };
 
   return (
     <div
@@ -50,7 +37,7 @@ const Presale: React.FC = () => {
         </div>
 
         {/* Connect Wallet Section */}
-        {!connected ? (
+        {!isConnected ? (
           <div className="max-w-md mx-auto anim-zoom-in anim-normal anim-delay-200">
             <div
               className="backdrop-blur-md p-8 text-center"
@@ -63,20 +50,8 @@ const Presale: React.FC = () => {
               <div className="text-7xl mb-4">🔒</div>
               <h2 className="text-2xl font-bold mb-4 text-black">Connect Your Wallet</h2>
               <p className="text-black/70 mb-6">
-                Connect your wallet to participate in the presale
+                Connect your wallet to participate in the presale. Use the Connect Wallet button in the header above.
               </p>
-              <button
-                onClick={handleConnectWallet}
-                className="w-full py-4 font-bold text-lg transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                  color: '#000',
-                  boxShadow: '0 8px 20px rgba(255, 215, 0, 0.4)',
-                  borderRadius: '6px',
-                }}
-              >
-                Connect Wallet
-              </button>
             </div>
           </div>
         ) : (
@@ -150,11 +125,6 @@ const Presale: React.FC = () => {
           </div>
         )}
       </div>
-      <WalletModal
-        isOpen={showWalletModal}
-        onClose={() => setShowWalletModal(false)}
-        onSelect={handleWalletSelect}
-      />
     </div>
   );
 };

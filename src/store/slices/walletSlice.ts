@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { WalletState } from '../../types/wallet';
 import web3Service from '../../services/web3Service';
-import { startLoading, stopLoading, setError } from './uiSlice';
 
 // ============================================
-// WALLET SLICE WITH REDUX THUNKS
+// WALLET SLICE (Wagmi-compatible)
 // ============================================
 
 const initialState: WalletState = {
@@ -16,23 +15,6 @@ const initialState: WalletState = {
   loading: false,
   error: null,
 };
-
-// ⚠️ REDUX THUNK - Connect Wallet
-export const connectWallet = createAsyncThunk(
-  'wallet/connect',
-  async (_, { dispatch, rejectWithValue }) => {
-    try {
-      dispatch(startLoading('Connecting wallet...'));
-      const { address, chainId } = await web3Service.connectWallet();
-      const usdtBalance = await web3Service.getUsdtBalance(address);
-      dispatch(stopLoading());
-      return { address, chainId, usdtBalance };
-    } catch (error: any) {
-      dispatch(setError(error.message));
-      return rejectWithValue(error.message);
-    }
-  }
-);
 
 // ⚠️ REDUX THUNK - Refresh Balances
 export const refreshBalances = createAsyncThunk(
@@ -51,6 +33,11 @@ const walletSlice = createSlice({
   name: 'wallet',
   initialState,
   reducers: {
+    syncWalletState(state, action: PayloadAction<{ address: string; chainId: number }>) {
+      state.address = action.payload.address;
+      state.chainId = action.payload.chainId;
+      state.connected = true;
+    },
     disconnectWallet(state) {
       state.address = null;
       state.chainId = null;
@@ -64,22 +51,6 @@ const walletSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Connect Wallet
-      .addCase(connectWallet.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(connectWallet.fulfilled, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.address = action.payload.address;
-        state.chainId = action.payload.chainId;
-        state.usdtBalance = action.payload.usdtBalance;
-        state.connected = true;
-      })
-      .addCase(connectWallet.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
       // Refresh Balances
       .addCase(refreshBalances.fulfilled, (state, action: PayloadAction<any>) => {
         state.usdtBalance = action.payload.usdtBalance;
@@ -87,5 +58,5 @@ const walletSlice = createSlice({
   },
 });
 
-export const { disconnectWallet, setChainId } = walletSlice.actions;
+export const { syncWalletState, disconnectWallet, setChainId } = walletSlice.actions;
 export default walletSlice.reducer;
